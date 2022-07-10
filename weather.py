@@ -21,15 +21,18 @@ async def request(method_name: str, url: str) -> dict:
     async with aiohttp.ClientSession() as session:
         logging.info(f'{_uuid} REQUEST: {method_name} | {url}')
         method = getattr(session, method_name)
-        async with method(url) as resp:
-            if resp.ok:
-                data = await resp.json()
-                logging.info(f'{_uuid} RESPONSE: {resp.status}')
-                return data
-            else:
-                data = await resp.text()
-                logging.info(f'{_uuid} RESPONSE: {resp.status} {pformat(data)}')
-                raise Exception
+        try:
+            async with method(url) as resp:
+                if resp.ok:
+                    data = await resp.json()
+                    logging.info(f'{_uuid} RESPONSE: {resp.status}')
+                    return data
+                else:
+                    data = await resp.text()
+                    raise Exception(data)
+        except Exception as exc:
+            logging.error(f'{_uuid} request error {exc}')
+            raise exc
 
 
 async def get_city_weather(city: str) -> dict:
